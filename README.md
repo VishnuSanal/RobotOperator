@@ -1,6 +1,6 @@
 # RobotOperator
 
-A very simple project to play with 3D rendering in Android.
+toy project to play around with 3D rendering in Android!
 
 ### Libraries Used
 
