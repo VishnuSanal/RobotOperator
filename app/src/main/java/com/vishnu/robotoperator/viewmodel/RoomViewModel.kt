@@ -108,21 +108,22 @@ class RoomViewModel @Inject constructor(
         return renderer!!
     }
 
-    fun addAnnotation(wallIndex: Int, x1: Float, y1: Float, x2: Float, y2: Float, text: String) {
-        val annotation = WallAnnotation(
-            wallIndex = wallIndex,
-            x1 = x1, y1 = y1,
-            x2 = x2, y2 = y2,
-            text = text
-        )
-        viewModelScope.launch {
-            annotationRepository.addAnnotation(annotation)
-
-            annotationRepository.getAnnotationsForRoom().let {
-                renderer?.finishWallSelection(text)
-            }
-        }
-    }
+//    fun addAnnotation(wallIndex: Int, x1: Float, y1: Float, x2: Float, y2: Float, text: String) {
+//        val annotation = WallAnnotation(
+//            wallIndex = wallIndex,
+//            x1 = x1, y1 = y1,
+//            x2 = x2, y2 = y2,
+//            text = text,
+//            type =
+//        )
+//        viewModelScope.launch {
+//            annotationRepository.addAnnotation(annotation)
+//
+//            annotationRepository.getAnnotationsForRoom().let {
+//                renderer?.finishWallSelection(text)
+//            }
+//        }
+//    }
 
     fun addAnnotation(annotation: WallAnnotation) {
         viewModelScope.launch {

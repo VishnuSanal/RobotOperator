@@ -2,6 +2,7 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
+import com.vishnu.robotoperator.model.AnnotationType
 import com.vishnu.robotoperator.model.WallAnnotation
 import com.vishnu.robotoperator.opengl.AnnotationRenderer
 import com.vishnu.robotoperator.opengl.WallSelection
@@ -557,7 +558,7 @@ class RoomRenderer(private val context: Context, private val roomViewModel: Room
             }
         }
 
-        fun finishWallSelection(text: String = "selection"): WallAnnotation? {
+        /*fun finishWallSelection(annotationType: AnnotationType): WallAnnotation? {
             val selection = currentWallSelection ?: return null
 
             // Create normalized rectangular selection
@@ -571,7 +572,7 @@ class RoomRenderer(private val context: Context, private val roomViewModel: Room
                 wallIndex = selection.wallIndex,
                 x1 = x1, y1 = y1,
                 x2 = x2, y2 = y2,
-                text = text
+                type =  annotationType
             )
 
             // Add it to the manager
@@ -582,7 +583,7 @@ class RoomRenderer(private val context: Context, private val roomViewModel: Room
             currentWallSelection = null
 
             return annotation
-        }
+        }*/
 
         fun cancelWallSelection() {
             wallSelectionMode = WallSelectionMode.NONE
@@ -594,10 +595,9 @@ class RoomRenderer(private val context: Context, private val roomViewModel: Room
         }
     }
 
-    fun finishWallSelection(text: String = "selection"): WallAnnotation? {
+    fun finishWallSelection(annotationType: AnnotationType): WallAnnotation? {
         val selection = currentWallSelection ?: return null
 
-        // Create normalized rectangular selection
         val x1 = minOf(selection.startX, selection.endX)
         val x2 = maxOf(selection.startX, selection.endX)
         val y1 = minOf(selection.startY, selection.endY)
@@ -608,7 +608,7 @@ class RoomRenderer(private val context: Context, private val roomViewModel: Room
             wallIndex = selection.wallIndex,
             x1 = x1, y1 = y1,
             x2 = x2, y2 = y2,
-            text = text
+            type = annotationType,
         )
 
         // Add it to the manager
@@ -626,9 +626,6 @@ class RoomRenderer(private val context: Context, private val roomViewModel: Room
         currentWallSelection = null
     }
 
-//    fun getAnnotations(): List<WallAnnotation> {
-//        return annotationManager.getAnnotations()
-//    }
 
     fun getSelectionMode(): WallSelectionMode {
         return wallSelectionMode

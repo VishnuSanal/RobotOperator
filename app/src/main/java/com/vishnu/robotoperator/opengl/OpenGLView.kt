@@ -170,7 +170,7 @@ class TouchHandlingGLSurfaceView(
 
             MotionEvent.ACTION_UP -> {
                 if (renderer.getSelectionMode() == WallSelectionMode.SELECTING) {
-                    renderer.finishWallSelection()
+                    renderer.finishWallSelection(viewModel.state.value.selectedAnnotationType)
                     viewModel.updateSelectionState(WallSelectionMode.NONE)
                     requestRender()
                     return true

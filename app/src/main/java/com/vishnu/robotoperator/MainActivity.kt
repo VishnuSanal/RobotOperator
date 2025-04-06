@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -209,7 +209,8 @@ fun RoomControlPanel(
 
                 Row(
                     Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     AnnotationTypeItem(
                         type = AnnotationType.SPRAY_AREA,
@@ -240,38 +241,28 @@ fun AnnotationTypeItem(
     isSelected: Boolean,
     onSelected: (AnnotationType) -> Unit
 ) {
-    val backgroundColor = if (isSelected) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surface
+    val backgroundColor = when (type) {
+        AnnotationType.SPRAY_AREA -> Color.Red
+        AnnotationType.SAND_AREA -> Color.Green
+        AnnotationType.OBSTACLE -> Color.Blue
     }
 
-    val textColor = if (isSelected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
+    val textColor = MaterialTheme.colorScheme.onSurface
 
     Row(
         modifier = Modifier
             .padding(8.dp)
             .background(backgroundColor)
             .border(
-                width = 1.dp,
+                width = 2.dp,
                 color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
             )
             .clickable { onSelected(type) }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val icon = when (type) {
-            AnnotationType.SPRAY_AREA -> Icons.Default.Add
-            AnnotationType.SAND_AREA -> Icons.Default.Add
-            AnnotationType.OBSTACLE -> Icons.Default.Add
-        }
-
         Icon(
-            imageVector = icon,
+            imageVector = Icons.Rounded.Settings,
             contentDescription = type.name,
             tint = textColor
         )

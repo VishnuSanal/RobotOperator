@@ -3,6 +3,7 @@ package com.vishnu.robotoperator.opengl
 import RoomRenderer
 import android.opengl.GLES20
 import android.opengl.Matrix
+import com.vishnu.robotoperator.model.AnnotationType
 import com.vishnu.robotoperator.model.WallAnnotation
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -123,8 +124,14 @@ class AnnotationRenderer {
             // Pass matrices to shader
             GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, annotationMvpMatrix, 0)
 
+            val color = when (annotation.type) {
+                AnnotationType.SPRAY_AREA -> floatArrayOf(1.0f, 0.0f, 0.0f, 0.7f)
+                AnnotationType.SAND_AREA -> floatArrayOf(0.0f, 1.0f, 0.0f, 0.7f)
+                AnnotationType.OBSTACLE -> floatArrayOf(0.0f, 0.0f, 1.0f, 0.7f)
+            }
+
             // Set color
-            GLES20.glUniform4fv(colorHandle, 1, floatArrayOf(1.0f, 0.5f, 0.0f, 0.7f), 0)
+            GLES20.glUniform4fv(colorHandle, 1, color, 0)
 
             // Draw the annotation
             GLES20.glDrawElements(
