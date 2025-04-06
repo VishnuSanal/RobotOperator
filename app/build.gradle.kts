@@ -53,6 +53,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     kapt(libs.hilt.android.compiler)
 
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    kapt(libs.androidx.room.compiler)
+    annotationProcessor(libs.androidx.room.compiler)
+
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
