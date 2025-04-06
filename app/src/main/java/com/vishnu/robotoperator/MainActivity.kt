@@ -40,6 +40,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.vishnu.robotoperator.model.AnnotationType
 import com.vishnu.robotoperator.opengl.TouchHandlingGLSurfaceView
 import com.vishnu.robotoperator.viewmodel.InteractionMode
@@ -53,7 +56,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                RoomViewerApp()
+                val roomViewModel: RoomViewModel = viewModel<RoomViewModel>()
+
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "room_screen") {
+                    composable("room_screen") {
+                        RoomViewerApp(roomViewModel)
+                    }
+                }
             }
         }
     }
@@ -61,7 +71,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoomViewerApp(roomViewModel: RoomViewModel = viewModel()) {
+fun RoomViewerApp(roomViewModel: RoomViewModel) {
     val roomState by roomViewModel.state.collectAsState()
     val context = LocalContext.current
 
