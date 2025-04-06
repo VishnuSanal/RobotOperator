@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 public interface AnnotationDao {
-    @Query("SELECT * FROM annotations WHERE roomId = :roomId")
-    fun getAnnotationsForRoom(roomId: Long): Flow<List<AnnotationEntity>>
+    @Query("SELECT * FROM annotations")
+    fun getAllAnnotations(): Flow<List<AnnotationEntity>>
 
     @Insert
     suspend fun insertAnnotation(annotation: AnnotationEntity): Long

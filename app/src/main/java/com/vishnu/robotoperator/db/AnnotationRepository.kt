@@ -3,7 +3,7 @@ package com.vishnu.robotoperator.data
 import com.vishnu.robotoperator.model.AnnotationEntity
 
 class AnnotationRepository(private val annotationDao: AnnotationDao) {
-    fun getAnnotationsForRoom(roomId: Long) = annotationDao.getAnnotationsForRoom(roomId)
+    fun getAnnotationsForRoom() = annotationDao.getAllAnnotations()
 
     suspend fun addAnnotation(annotation: AnnotationEntity) =
         annotationDao.insertAnnotation(annotation)

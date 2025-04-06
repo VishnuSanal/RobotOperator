@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,15 +17,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -32,12 +35,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vishnu.robotoperator.model.AnnotationType
 import com.vishnu.robotoperator.opengl.TouchHandlingGLSurfaceView
 import com.vishnu.robotoperator.viewmodel.InteractionMode
+import com.vishnu.robotoperator.viewmodel.RoomState
 import com.vishnu.robotoperator.viewmodel.RoomViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -120,12 +126,6 @@ fun RoomViewerApp(roomViewModel: RoomViewModel = viewModel()) {
                             )
                         }
                     }
-
-                    ControlsHelpOverlay(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                    )
                 }
 
                 RoomControlPanel(
@@ -134,28 +134,11 @@ fun RoomViewerApp(roomViewModel: RoomViewModel = viewModel()) {
                     zoom = roomState.zoom,
                     currentMode = roomState.interactionMode,
                     onResetCamera = { roomViewModel.resetCamera(); },
-                    onSwitchMode = { mode -> roomViewModel.switchInteractionMode(mode) })
+                    onSwitchMode = { mode -> roomViewModel.switchInteractionMode(mode) },
+                    roomViewModel,
+                    roomState,
+                )
             }
-        }
-    }
-}
-
-@Composable
-fun ControlsHelpOverlay(modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.width(200.dp), colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
-        )
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "Controls:", style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("• Drag: Rotate or pan")
-            Text("• Long press: Switch mode")
-            Text("• Pinch: Zoom in/out")
-            Text("• Double tap: Reset view")
         }
     }
 }
@@ -167,7 +150,9 @@ fun RoomControlPanel(
     zoom: Float,
     currentMode: InteractionMode,
     onResetCamera: () -> Unit,
-    onSwitchMode: (InteractionMode) -> Unit
+    onSwitchMode: (InteractionMode) -> Unit,
+    roomViewModel: RoomViewModel,
+    roomState: RoomState,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface, tonalElevation = 4.dp
@@ -190,38 +175,112 @@ fun RoomControlPanel(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "Controls:", style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("• Drag: Rotate or pan")
+                Text("• Long press: Switch mode")
+                Text("• Pinch: Zoom in/out")
+                Text("• Double tap: Reset view")
 
-            Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row {
-                    Button(
-                        onClick = { onSwitchMode(InteractionMode.ROTATION) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (currentMode == InteractionMode.ROTATION) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
-                        ),
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text("Rotate")
-                    }
-
-                    Button(
-                        onClick = { onSwitchMode(InteractionMode.PAN) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (currentMode == InteractionMode.PAN) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    ) {
-                        Text("Pan")
-                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Edit Mode",
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = roomState.isEditMode,
+                        onCheckedChange = { roomViewModel.setEditMode(it) }
+                    )
                 }
 
-                Button(
-                    onClick = { onResetCamera() }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Annotation Type",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Reset View")
+                    AnnotationTypeItem(
+                        type = AnnotationType.SPRAY_AREA,
+                        isSelected = roomState.selectedAnnotationType == AnnotationType.SPRAY_AREA,
+                        onSelected = { roomViewModel.setAnnotationType(it) }
+                    )
+
+                    AnnotationTypeItem(
+                        type = AnnotationType.SAND_AREA,
+                        isSelected = roomState.selectedAnnotationType == AnnotationType.SAND_AREA,
+                        onSelected = { roomViewModel.setAnnotationType(it) }
+                    )
+
+                    AnnotationTypeItem(
+                        type = AnnotationType.OBSTACLE,
+                        isSelected = roomState.selectedAnnotationType == AnnotationType.OBSTACLE,
+                        onSelected = { roomViewModel.setAnnotationType(it) }
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun AnnotationTypeItem(
+    type: AnnotationType,
+    isSelected: Boolean,
+    onSelected: (AnnotationType) -> Unit
+) {
+    val backgroundColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
+    val textColor = if (isSelected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
+    Row(
+        modifier = Modifier
+            .padding(8.dp)
+            .background(backgroundColor)
+            .border(
+                width = 1.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+            )
+            .clickable { onSelected(type) }
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val icon = when (type) {
+            AnnotationType.SPRAY_AREA -> Icons.Default.Add
+            AnnotationType.SAND_AREA -> Icons.Default.Add
+            AnnotationType.OBSTACLE -> Icons.Default.Add
+        }
+
+        Icon(
+            imageVector = icon,
+            contentDescription = type.name,
+            tint = textColor
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        Text(
+            text = type.name.replace("_", " ").replace("AREA", "").trim(),
+            color = textColor
+        )
     }
 }

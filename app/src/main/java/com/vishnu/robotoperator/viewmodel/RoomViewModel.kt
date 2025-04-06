@@ -3,11 +3,21 @@ package com.vishnu.robotoperator.viewmodel
 import RoomRenderer
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.vishnu.robotoperator.data.AnnotationRepository
+import com.vishnu.robotoperator.model.AnnotationEntity
+import com.vishnu.robotoperator.model.AnnotationType
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RoomViewModel : ViewModel() {
+@HiltViewModel
+class RoomViewModel @Inject constructor(
+    private val annotationRepository: AnnotationRepository,
+) : ViewModel() {
     private val _state = MutableStateFlow(RoomState())
     val state: StateFlow<RoomState> = _state.asStateFlow()
 
@@ -26,6 +36,10 @@ class RoomViewModel : ViewModel() {
     }
 
     fun updateRotation(rotX: Float, rotY: Float) {
+
+        if (state.value.isEditMode)
+            return
+
         val limitedRotX = rotX.coerceIn(-80f, 80f)
         _state.value = _state.value.copy(
             rotationX = limitedRotX,
@@ -36,6 +50,10 @@ class RoomViewModel : ViewModel() {
     }
 
     fun updateZoom(zoom: Float) {
+
+        if (state.value.isEditMode)
+            return
+
         val limitedZoom = zoom.coerceIn(1f, 10f)
         _state.value = _state.value.copy(
             zoom = limitedZoom
@@ -45,6 +63,10 @@ class RoomViewModel : ViewModel() {
     }
 
     fun updatePan(panX: Float, panY: Float) {
+
+        if (state.value.isEditMode)
+            return
+
         _state.value = _state.value.copy(
             panX = panX,
             panY = panY
@@ -78,6 +100,37 @@ class RoomViewModel : ViewModel() {
         _state.value = _state.value.copy(interactionMode = mode)
     }
 
+    fun addAnnotation(
+        type: AnnotationType,
+        wallId: Int,
+        x: Float,
+        y: Float,
+        z: Float,
+        width: Float,
+        height: Float,
+        notes: String? = null
+    ) {
+        viewModelScope.launch {
+            try {
+                val annotation = AnnotationEntity(
+                    type = type.name,
+                    wallId = wallId,
+                    x = x,
+                    y = y,
+                    z = z,
+                    width = width,
+                    height = height,
+                    notes = notes
+                )
+
+                val id = annotationRepository.addAnnotation(annotation)
+//                renderer?.addAnnotation(annotation.toRendererAnnotation().copy(id = id))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun togglePanRotateMode() {
         val currentMode = _state.value.interactionMode
         val newMode = if (currentMode == InteractionMode.ROTATION)
@@ -89,6 +142,14 @@ class RoomViewModel : ViewModel() {
     fun requestRender(): Boolean {
         return renderer?.requestRender() ?: false
     }
+
+    fun setEditMode(editMode: Boolean) {
+        _state.value = _state.value.copy(isEditMode = editMode)
+    }
+
+    fun setAnnotationType(annotationType: AnnotationType) {
+        _state.value = _state.value.copy(selectedAnnotationType = annotationType)
+    }
 }
 
 data class RoomState(
@@ -98,7 +159,9 @@ data class RoomState(
     val zoom: Float = 7f,
     val panX: Float = 0f,
     val panY: Float = 0f,
-    val interactionMode: InteractionMode = InteractionMode.ROTATION
+    val interactionMode: InteractionMode = InteractionMode.ROTATION,
+    val selectedAnnotationType: AnnotationType = AnnotationType.SPRAY_AREA,
+    val isEditMode: Boolean = false,
 )
 
 enum class InteractionMode {

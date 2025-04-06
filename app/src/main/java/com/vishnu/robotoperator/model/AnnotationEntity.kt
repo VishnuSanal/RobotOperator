@@ -7,7 +7,6 @@ import androidx.room.PrimaryKey
 data class AnnotationEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val type: String,
-    val roomId: Long,
     val wallId: Int,
     val x: Float,
     val y: Float,
