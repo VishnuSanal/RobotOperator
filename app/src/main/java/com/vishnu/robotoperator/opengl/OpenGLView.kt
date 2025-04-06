@@ -1,5 +1,6 @@
 package com.vishnu.robotoperator.opengl
 
+import RoomRenderer
 import android.content.Context
 import android.opengl.GLSurfaceView
 import android.view.GestureDetector
@@ -20,10 +21,16 @@ class TouchHandlingGLSurfaceView(
     private var previousY: Float = 0f
     private var initialScale: Float = 1f
 
+    // Track annotation start/end coordinates
+    private var startX: Float = 0f
+    private var startY: Float = 0f
+
+    private var renderer: RoomRenderer
+
     init {
         setEGLContextClientVersion(2)
 
-        val renderer = viewModel.initRenderer(context)
+        renderer = viewModel.initRenderer(context)
         setRenderer(renderer)
         renderMode = RENDERMODE_CONTINUOUSLY
 
@@ -41,7 +48,10 @@ class TouchHandlingGLSurfaceView(
                 }
 
                 override fun onLongPress(e: MotionEvent) {
-                    viewModel.togglePanRotateMode()
+                    // Only toggle pan/rotate mode if not in annotation mode
+                    if (!viewModel.state.value.isEditMode) {
+                        viewModel.togglePanRotateMode()
+                    }
                 }
             })
 
@@ -73,10 +83,14 @@ class TouchHandlingGLSurfaceView(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        // Handle annotation mode
+        if (viewModel.state.value.isEditMode) {
+            return handleAnnotationTouch(event)
+        }
 
+        // Handle normal navigation touches
         scaleGestureDetector.onTouchEvent(event)
         gestureDetector.onTouchEvent(event)
-
 
         if (scaleGestureDetector.isInProgress) {
             previousX = event.x
@@ -99,7 +113,6 @@ class TouchHandlingGLSurfaceView(
 
                 when (viewModel.state.value.interactionMode) {
                     InteractionMode.ROTATION -> {
-
                         val rotationSensitivity = 0.5f
                         val currentState = viewModel.state.value
                         val newRotY = currentState.rotationY + dx * rotationSensitivity
@@ -109,7 +122,6 @@ class TouchHandlingGLSurfaceView(
                     }
 
                     InteractionMode.PAN -> {
-
                         val panSensitivity = 0.01f
                         val panDx = dx * panSensitivity
                         val panDy = -dy * panSensitivity
@@ -122,7 +134,7 @@ class TouchHandlingGLSurfaceView(
                     }
 
                     InteractionMode.ZOOM -> {
-
+                        // Handled by scale gesture detector
                     }
                 }
 
@@ -133,5 +145,55 @@ class TouchHandlingGLSurfaceView(
         }
 
         return true
+    }
+
+    private fun handleAnnotationTouch(event: MotionEvent): Boolean {
+        val x = event.x
+        val y = event.y
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                // Start wall selection
+                startX = x
+                startY = y
+
+                // Begin wall selection process in renderer
+                val selectionStarted = renderer.startWallSelection(x, y)
+                if (selectionStarted) {
+//                    viewModel.updateSelectionState(WallSelectionMode.SELECTING)
+                    requestRender()
+                }
+                return selectionStarted
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                if (renderer.getSelectionMode() == WallSelectionMode.SELECTING) {
+                    renderer.updateWallSelection(x, y)
+                    requestRender()
+                    return true
+                }
+            }
+
+            MotionEvent.ACTION_UP -> {
+                if (renderer.getSelectionMode() == WallSelectionMode.SELECTING) {
+                    val annotation = renderer.finishWallSelection()
+                    viewModel.updateSelectionState(WallSelectionMode.NONE)
+                    requestRender()
+                    return true
+                }
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                // Cancel selection if needed
+                if (renderer.getSelectionMode() == WallSelectionMode.SELECTING) {
+                    renderer.cancelWallSelection()
+//                    viewModel.updateSelectionState(WallSelectionMode.NONE)
+                    requestRender()
+                    return true
+                }
+            }
+        }
+
+        return false
     }
 }

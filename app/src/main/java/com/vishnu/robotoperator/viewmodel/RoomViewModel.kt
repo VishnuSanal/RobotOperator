@@ -3,15 +3,14 @@ package com.vishnu.robotoperator.viewmodel
 import RoomRenderer
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.vishnu.robotoperator.data.AnnotationRepository
-import com.vishnu.robotoperator.model.AnnotationEntity
 import com.vishnu.robotoperator.model.AnnotationType
+import com.vishnu.robotoperator.opengl.WallAnnotation
+import com.vishnu.robotoperator.opengl.WallSelectionMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -100,34 +99,24 @@ class RoomViewModel @Inject constructor(
         _state.value = _state.value.copy(interactionMode = mode)
     }
 
-    fun addAnnotation(
-        type: AnnotationType,
-        wallId: Int,
-        x: Float,
-        y: Float,
-        z: Float,
-        width: Float,
-        height: Float,
-        notes: String? = null
-    ) {
-        viewModelScope.launch {
-            try {
-                val annotation = AnnotationEntity(
-                    type = type.name,
-                    wallId = wallId,
-                    x = x,
-                    y = y,
-                    z = z,
-                    width = width,
-                    height = height,
-                    notes = notes
-                )
+    fun updateSelectionState(mode: WallSelectionMode) {
+//        _state.value = _state.value.copy(selectedAnnotationType = mode.name)
+    }
 
-                val id = annotationRepository.addAnnotation(annotation)
-//                renderer?.addAnnotation(annotation.toRendererAnnotation().copy(id = id))
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+    fun getRenderer(): RoomRenderer {
+        return renderer!!
+    }
+
+    fun addAnnotation(wallIndex: Int, x1: Float, y1: Float, x2: Float, y2: Float, text: String) {
+        val annotation = WallAnnotation(
+            wallIndex = wallIndex,
+            x1 = x1, y1 = y1,
+            x2 = x2, y2 = y2,
+            text = text
+        )
+        renderer?.getAnnotations()?.let {
+            // Add annotation
+            renderer?.finishWallSelection(text)
         }
     }
 
