@@ -2,7 +2,26 @@
 
 A very simple project to play with 3D rendering in Android.
 
+### Libraries Used
+
+- [hilt-android](https://developer.android.com/training/dependency-injection/hilt-android)
+- [Room](https://developer.android.com/training/data-storage/room)
+
+### Demo
+
+<details>
+
+https://github.com/user-attachments/assets/103daf7c-80da-468a-9edd-b34f3c305bc0
+ 
+</details>
+
+### Limitations
+
+- incorrect selections & glitches occuring when annotating for vertical walls
+
 ### Setup Instructions
+
+<details>
 
 - Fork the Repo
  
@@ -23,3 +42,5 @@ A very simple project to play with 3D rendering in Android.
 - Wait for Andorid Studio to download the necessary files & set up the project. 
   
 - The project is ready, try running it!
+
+</details>
