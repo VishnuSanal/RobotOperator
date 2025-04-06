@@ -23,7 +23,9 @@ object AppModule {
             context,
             RobotOperatorDatabase::class.java,
             "robot_operator_database"
-        ).fallbackToDestructiveMigration()
+        )
+            .allowMainThreadQueries()
+            .fallbackToDestructiveMigration()
             .build()
     }
 

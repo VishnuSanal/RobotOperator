@@ -3,14 +3,16 @@ package com.vishnu.robotoperator.viewmodel
 import RoomRenderer
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.vishnu.robotoperator.data.AnnotationRepository
 import com.vishnu.robotoperator.model.AnnotationType
-import com.vishnu.robotoperator.opengl.WallAnnotation
+import com.vishnu.robotoperator.model.WallAnnotation
 import com.vishnu.robotoperator.opengl.WallSelectionMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,7 +25,7 @@ class RoomViewModel @Inject constructor(
     private var renderer: RoomRenderer? = null
 
     fun initRenderer(context: Context): RoomRenderer {
-        val newRenderer = RoomRenderer(context)
+        val newRenderer = RoomRenderer(context, this)
         renderer = newRenderer
 
         val currentState = _state.value
@@ -39,7 +41,7 @@ class RoomViewModel @Inject constructor(
         if (state.value.isEditMode)
             return
 
-        val limitedRotX = rotX.coerceIn(-80f, 80f)
+        val limitedRotX = rotX.coerceIn(-40f, 40f)
         _state.value = _state.value.copy(
             rotationX = limitedRotX,
             rotationY = rotY
@@ -49,11 +51,10 @@ class RoomViewModel @Inject constructor(
     }
 
     fun updateZoom(zoom: Float) {
-
         if (state.value.isEditMode)
             return
 
-        val limitedZoom = zoom.coerceIn(1f, 10f)
+        val limitedZoom = zoom.coerceIn(1f, 2f)
         _state.value = _state.value.copy(
             zoom = limitedZoom
         )
@@ -114,9 +115,18 @@ class RoomViewModel @Inject constructor(
             x2 = x2, y2 = y2,
             text = text
         )
-        renderer?.getAnnotations()?.let {
-            // Add annotation
-            renderer?.finishWallSelection(text)
+        viewModelScope.launch {
+            annotationRepository.addAnnotation(annotation)
+
+            annotationRepository.getAnnotationsForRoom().let {
+                renderer?.finishWallSelection(text)
+            }
+        }
+    }
+
+    fun addAnnotation(annotation: WallAnnotation) {
+        viewModelScope.launch {
+            annotationRepository.addAnnotation(annotation)
         }
     }
 
@@ -138,6 +148,10 @@ class RoomViewModel @Inject constructor(
 
     fun setAnnotationType(annotationType: AnnotationType) {
         _state.value = _state.value.copy(selectedAnnotationType = annotationType)
+    }
+
+    fun getAnnotations(): List<WallAnnotation> {
+        return annotationRepository.getAnnotationsForRoom()
     }
 }
 

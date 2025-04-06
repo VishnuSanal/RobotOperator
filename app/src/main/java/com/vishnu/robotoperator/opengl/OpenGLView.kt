@@ -21,7 +21,6 @@ class TouchHandlingGLSurfaceView(
     private var previousY: Float = 0f
     private var initialScale: Float = 1f
 
-    // Track annotation start/end coordinates
     private var startX: Float = 0f
     private var startY: Float = 0f
 
@@ -48,7 +47,6 @@ class TouchHandlingGLSurfaceView(
                 }
 
                 override fun onLongPress(e: MotionEvent) {
-                    // Only toggle pan/rotate mode if not in annotation mode
                     if (!viewModel.state.value.isEditMode) {
                         viewModel.togglePanRotateMode()
                     }
@@ -83,12 +81,10 @@ class TouchHandlingGLSurfaceView(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        // Handle annotation mode
         if (viewModel.state.value.isEditMode) {
             return handleAnnotationTouch(event)
         }
 
-        // Handle normal navigation touches
         scaleGestureDetector.onTouchEvent(event)
         gestureDetector.onTouchEvent(event)
 
@@ -153,14 +149,12 @@ class TouchHandlingGLSurfaceView(
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                // Start wall selection
                 startX = x
                 startY = y
 
-                // Begin wall selection process in renderer
                 val selectionStarted = renderer.startWallSelection(x, y)
                 if (selectionStarted) {
-//                    viewModel.updateSelectionState(WallSelectionMode.SELECTING)
+                    viewModel.updateSelectionState(WallSelectionMode.SELECTING)
                     requestRender()
                 }
                 return selectionStarted
@@ -176,7 +170,7 @@ class TouchHandlingGLSurfaceView(
 
             MotionEvent.ACTION_UP -> {
                 if (renderer.getSelectionMode() == WallSelectionMode.SELECTING) {
-                    val annotation = renderer.finishWallSelection()
+                    renderer.finishWallSelection()
                     viewModel.updateSelectionState(WallSelectionMode.NONE)
                     requestRender()
                     return true
@@ -184,10 +178,9 @@ class TouchHandlingGLSurfaceView(
             }
 
             MotionEvent.ACTION_CANCEL -> {
-                // Cancel selection if needed
                 if (renderer.getSelectionMode() == WallSelectionMode.SELECTING) {
                     renderer.cancelWallSelection()
-//                    viewModel.updateSelectionState(WallSelectionMode.NONE)
+                    viewModel.updateSelectionState(WallSelectionMode.NONE)
                     requestRender()
                     return true
                 }

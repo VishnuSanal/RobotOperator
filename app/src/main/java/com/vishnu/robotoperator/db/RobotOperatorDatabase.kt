@@ -3,10 +3,10 @@ package com.vishnu.robotoperator.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.vishnu.robotoperator.data.AnnotationDao
-import com.vishnu.robotoperator.model.AnnotationEntity
+import com.vishnu.robotoperator.model.WallAnnotation
 
 @Database(
-    entities = [AnnotationEntity::class],
+    entities = [WallAnnotation::class],
     version = 1,
 )
 abstract class RobotOperatorDatabase : RoomDatabase() {

@@ -2,11 +2,11 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import com.vishnu.robotoperator.opengl.AnnotationManager
+import com.vishnu.robotoperator.model.WallAnnotation
 import com.vishnu.robotoperator.opengl.AnnotationRenderer
-import com.vishnu.robotoperator.opengl.WallAnnotation
 import com.vishnu.robotoperator.opengl.WallSelection
 import com.vishnu.robotoperator.opengl.WallSelectionMode
+import com.vishnu.robotoperator.viewmodel.RoomViewModel
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -17,9 +17,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
+class RoomRenderer(private val context: Context, private val roomViewModel: RoomViewModel) :
+    GLSurfaceView.Renderer {
 
-    // Original properties
     private val viewMatrix = FloatArray(16)
     private val projectionMatrix = FloatArray(16)
     private val modelMatrix = FloatArray(16)
@@ -36,7 +36,6 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
     private var rotationY = 0f
     private var zoom = 3f
 
-    // Room dimensions - making these public for the annotation renderer
     val roomWidth = 3f
     val roomHeight = 2f
     val roomDepth = 3f
@@ -45,24 +44,19 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
     private var shaderProgram = 0
     private val room = Room(roomWidth, roomHeight, roomDepth)
 
-    // Annotation-related properties
-    private val annotationManager = AnnotationManager()
     private val annotationRenderer = AnnotationRenderer()
     private var currentWallSelection: WallSelection? = null
     private var wallSelectionMode = WallSelectionMode.NONE
 
-    // Screen dimensions for coordinate conversions
     private var screenWidth = 0
     private var screenHeight = 0
 
     override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
-        // Original initialization
         GLES20.glClearColor(0.9f, 0.9f, 0.9f, 1.0f)
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
         shaderProgram = createShaderProgram()
         Matrix.setIdentityM(modelMatrix, 0)
 
-        // Initialize annotation renderer
         annotationRenderer.init()
     }
 
@@ -79,11 +73,9 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
         updateViewMatrix()
         drawRoom()
 
-        // Draw annotations after room
-        annotationRenderer.drawAnnotations(annotationManager.getAnnotations(), mvpMatrix, this)
+        annotationRenderer.drawAnnotations(roomViewModel.getAnnotations(), mvpMatrix, this)
     }
 
-    // Original room drawing and utility methods remain the same
     private fun updateViewMatrix() {
         // Calculate camera position based on rotation and zoom
         val camX =
@@ -127,7 +119,6 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
         for (i in 0 until room.walls.size) {
             val wall = room.walls[i]
 
-            // Set wall color
             when (i) {
                 0 -> GLES20.glUniform4f(colorHandle, 0.9f, 0.9f, 1.0f, 1.0f)  // Floor
                 2 -> GLES20.glUniform4f(colorHandle, 1.0f, 0.9f, 0.9f, 1.0f)  // Left wall
@@ -163,7 +154,6 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
         }
     }
 
-    // Other original methods remain the same...
     private fun createShaderProgram(): Int {
         // Vertex shader code
         val vertexShaderCode = """
@@ -220,7 +210,6 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
         return shader
     }
 
-    // Camera control methods
     fun setRotation(x: Float, y: Float) {
         rotationX = x
         rotationY = y
@@ -586,7 +575,7 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
             )
 
             // Add it to the manager
-            annotationManager.addAnnotation(annotation)
+            roomViewModel.addAnnotation(annotation)
 
             // Reset selection state
             wallSelectionMode = WallSelectionMode.NONE
@@ -600,50 +589,10 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
             currentWallSelection = null
         }
 
-        fun getAnnotations(): List<WallAnnotation> {
-            return annotationManager.getAnnotations()
-        }
-
-        fun removeAnnotation(index: Int) {
-            annotationManager.removeAnnotation(index)
-        }
-
-        fun clearAnnotations() {
-            annotationManager.clearAnnotations()
-        }
-
         fun getSelectionMode(): WallSelectionMode {
             return wallSelectionMode
         }
     }
-
-    /*// New annotation-related methods
-    fun startWallSelection(x: Float, y: Float): Boolean {
-        // Ray casting would be needed here to determine which wall was clicked
-        // and the exact coordinates on that wall
-        // This is a placeholder that would need to be implemented
-
-        // For demonstration purposes, let's assume front wall (index 4) was clicked
-        val wallIndex = 0
-        val normalizedX = x / screenWidth  // Normalize to 0-1 range
-        val normalizedY = y / screenHeight // Normalize to 0-1 range
-
-        currentWallSelection = WallSelection(wallIndex, normalizedX, normalizedY)
-        wallSelectionMode = WallSelectionMode.SELECTING
-        return true
-    }
-
-    fun updateWallSelection(x: Float, y: Float) {
-        currentWallSelection?.let { selection ->
-            // Convert screen coordinates to normalized coordinates
-            val normalizedX = x / screenWidth
-            val normalizedY = y / screenHeight
-
-            // Update the end point
-            selection.endX = normalizedX
-            selection.endY = normalizedY
-        }
-    }*/
 
     fun finishWallSelection(text: String = "selection"): WallAnnotation? {
         val selection = currentWallSelection ?: return null
@@ -663,7 +612,7 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
         )
 
         // Add it to the manager
-        annotationManager.addAnnotation(annotation)
+        roomViewModel.addAnnotation(annotation)
 
         // Reset selection state
         wallSelectionMode = WallSelectionMode.NONE
@@ -677,17 +626,9 @@ class RoomRenderer(private val context: Context) : GLSurfaceView.Renderer {
         currentWallSelection = null
     }
 
-    fun getAnnotations(): List<WallAnnotation> {
-        return annotationManager.getAnnotations()
-    }
-
-    fun removeAnnotation(index: Int) {
-        annotationManager.removeAnnotation(index)
-    }
-
-    fun clearAnnotations() {
-        annotationManager.clearAnnotations()
-    }
+//    fun getAnnotations(): List<WallAnnotation> {
+//        return annotationManager.getAnnotations()
+//    }
 
     fun getSelectionMode(): WallSelectionMode {
         return wallSelectionMode

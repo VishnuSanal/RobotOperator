@@ -5,20 +5,19 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.vishnu.robotoperator.model.AnnotationEntity
-import kotlinx.coroutines.flow.Flow
+import com.vishnu.robotoperator.model.WallAnnotation
 
 @Dao
 public interface AnnotationDao {
     @Query("SELECT * FROM annotations")
-    fun getAllAnnotations(): Flow<List<AnnotationEntity>>
+    fun getAllAnnotations(): List<WallAnnotation>
 
     @Insert
-    suspend fun insertAnnotation(annotation: AnnotationEntity): Long
+    suspend fun insertAnnotation(annotation: WallAnnotation): Long
 
     @Update
-    suspend fun updateAnnotation(annotation: AnnotationEntity)
+    suspend fun updateAnnotation(annotation: WallAnnotation)
 
     @Delete
-    suspend fun deleteAnnotation(annotation: AnnotationEntity)
+    suspend fun deleteAnnotation(annotation: WallAnnotation)
 }
