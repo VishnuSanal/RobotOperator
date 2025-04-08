@@ -58,6 +58,10 @@ dependencies {
     kapt(libs.androidx.room.compiler)
     annotationProcessor(libs.androidx.room.compiler)
 
+    implementation("com.google.android.filament:filament-android:1.57.1")
+    implementation("com.google.android.filament:filament-utils-android:1.57.1")
+    implementation("com.google.android.filament:gltfio-android:1.57.1")
+
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
