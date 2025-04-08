@@ -28,6 +28,14 @@ class FilamentActivity : Activity() {
             loadIndirectLight(this@FilamentActivity, "venetian_crossroads_2k")
             loadEnviroment(this@FilamentActivity, "venetian_crossroads_2k");
         }
+
+        customViewer.startAnnotating()
+
+//        val isAnnotatingNow = customViewer.toggleAnnotationMode()
+
+//        val annotations = customViewer.getAnnotations()
+
+//        customViewer.clearAnnotations()
     }
 
     override fun onResume() {
