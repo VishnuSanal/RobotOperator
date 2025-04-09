@@ -3,11 +3,17 @@ package com.reviling.filamentandroid
 import android.content.Context
 import android.view.Choreographer
 import android.view.SurfaceView
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.google.android.filament.Skybox
+import com.google.android.filament.Texture
+import com.google.android.filament.TextureSampler
 import com.google.android.filament.utils.KTX1Loader
 import com.google.android.filament.utils.ModelViewer
 import com.google.android.filament.utils.Utils
+import com.vishnu.robotoperator.R
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class CustomViewer {
     companion object {
@@ -17,7 +23,7 @@ class CustomViewer {
     }
 
     private lateinit var choreographer: Choreographer
-    private lateinit var modelViewer: ModelViewer
+    lateinit var modelViewer: ModelViewer
 
     fun loadEntity() {
         choreographer = Choreographer.getInstance()
@@ -34,9 +40,48 @@ class CustomViewer {
     }
 
     fun loadGlb(context: Context, name: String) {
+
+        val bitmap =
+            ContextCompat.getDrawable(context, R.drawable.ic_launcher_foreground)
+                ?.toBitmap()!!
+
+        // Create Filament texture from bitmap
+        val texture = Texture.Builder()
+            .width(bitmap.width)
+            .height(bitmap.height)
+            .levels(1)
+            .sampler(Texture.Sampler.SAMPLER_2D)
+            .format(Texture.InternalFormat.RGBA8)
+            .build(modelViewer.engine)
+
+        val bf = ByteBuffer.allocateDirect(bitmap.byteCount).order(ByteOrder.nativeOrder())
+        bitmap.copyPixelsToBuffer(bf)
+        bf.rewind()
+
+        val descriptor = Texture.PixelBufferDescriptor(
+            bf,
+            Texture.Format.RGBA,
+            Texture.Type.UBYTE,
+//        object : Texture.PixelBufferDescriptor.Callback {
+//            override fun onRelease() {
+//                buffer.clear()
+//            }
+//        }
+        )
+
+        texture.setImage(modelViewer.engine, 0, descriptor)
+
+        // Create sampler
+        val sampler = TextureSampler(
+            TextureSampler.MinFilter.LINEAR_MIPMAP_LINEAR,
+            TextureSampler.MagFilter.LINEAR,
+            TextureSampler.WrapMode.REPEAT
+        )
+
         val buffer = readAsset(context, "models/${name}.glb")
         modelViewer.apply {
             loadModelGlb(buffer)
+//            loadTexture(engine,)
             transformToUnitCube()
         }
     }
