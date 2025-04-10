@@ -1,13 +1,18 @@
 package com.vishnu.robotoperator.model
 
+import android.graphics.Color
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "annotations")
 data class WallAnnotation(
+    var startX: Float,
+    var startY: Float,
+    var endX: Float,
+    var endY: Float,
+
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val type: AnnotationType,
-    val wallIndex: Int,
-    val x1: Float, val y1: Float,  // Top-left corner in wall coordinates (0-1)
-    val x2: Float, val y2: Float,  // Bottom-right corner in wall coordinates (0-1)
+
+    var type: AnnotationType = AnnotationType.OBSTACLE,
+    var color: Int = Color.RED,
 )
