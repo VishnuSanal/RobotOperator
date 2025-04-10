@@ -2,6 +2,7 @@ package com.vishnu.robotoperator.viewmodel
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.Log
@@ -64,6 +65,10 @@ class RoomViewModel @Inject constructor(
 
     fun setEditMode(editMode: Boolean) {
         _state.value = _state.value.copy(isEditMode = editMode)
+        if (editMode)
+            startAnnotating()
+        else
+            stopAnnotating()
     }
 
     fun setAnnotationType(annotationType: AnnotationType) {
@@ -96,7 +101,13 @@ class RoomViewModel @Inject constructor(
                     if (isAnnotating) {
                         startX = event.x
                         startY = event.y
-                        currentAnnotation = WallAnnotation(startX, startY, startX, startY)
+                        currentAnnotation = WallAnnotation(
+                            startX,
+                            startY,
+                            startX,
+                            startY,
+                            type = state.value.selectedAnnotationType
+                        )
                         return@setOnTouchListener true
                     }
                 }
@@ -228,14 +239,24 @@ class RoomViewModel @Inject constructor(
 
     private fun drawAnnotation(canvas: Canvas, annotation: WallAnnotation) {
         val paint = Paint().apply {
-            color = annotation.color
+            color =
+                when (annotation.type) {
+                    AnnotationType.SPRAY_AREA -> Color.RED
+                    AnnotationType.SAND_AREA -> Color.GREEN
+                    AnnotationType.OBSTACLE -> Color.YELLOW
+                }
             style = Paint.Style.STROKE
             strokeWidth = 5f
             alpha = 180
         }
 
         val fillPaint = Paint().apply {
-            color = annotation.color
+            color =
+                when (annotation.type) {
+                    AnnotationType.SPRAY_AREA -> Color.RED
+                    AnnotationType.SAND_AREA -> Color.GREEN
+                    AnnotationType.OBSTACLE -> Color.YELLOW
+                }
             style = Paint.Style.FILL
             alpha = 50
         }

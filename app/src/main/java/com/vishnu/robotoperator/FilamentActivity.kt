@@ -6,16 +6,14 @@ import android.view.Choreographer
 import android.view.SurfaceView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.filament.utils.Utils
+import com.vishnu.robotoperator.ui.theme.RoomControlPanel
 import com.vishnu.robotoperator.viewmodel.RoomViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -38,27 +36,6 @@ class FilamentActivity : ComponentActivity() {
             roomViewModel = viewModel<RoomViewModel>()
             surfaceView = SurfaceView(this)
 
-            Box {
-
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { context ->
-                        Log.e("vishnu", "onCreate() called with: context = $context")
-                        surfaceView
-                    },
-                    update = { view ->
-                        Log.e("vishnu", "onCreate() called with: view = $view")
-                        roomViewModel.onResume()
-                    }
-                )
-
-                Button(
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                    content = @Composable { Text("Toggle") },
-                    onClick = { roomViewModel.toggleAnnotationMode() }
-                )
-            }
-
             roomViewModel.run {
                 loadEntity()
                 setSurfaceView(surfaceView)
@@ -69,6 +46,29 @@ class FilamentActivity : ComponentActivity() {
                 loadEnviroment(this@FilamentActivity, "venetian_crossroads_2k")
 
                 surfaceView.postInvalidate()
+            }
+
+            Column {
+
+                val roomState = roomViewModel.state.collectAsState()
+
+                AndroidView(
+                    modifier = Modifier
+                        .weight(1f),
+                    factory = { context ->
+                        Log.e("vishnu", "onCreate() called with: context = $context")
+                        surfaceView
+                    },
+                    update = { view ->
+                        Log.e("vishnu", "onCreate() called with: view = $view")
+                        roomViewModel.onResume()
+                    }
+                )
+
+                RoomControlPanel(
+                    Modifier
+                        .wrapContentSize(), roomState, roomViewModel
+                )
             }
         }
     }

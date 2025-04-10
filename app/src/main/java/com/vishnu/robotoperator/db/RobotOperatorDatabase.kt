@@ -7,7 +7,7 @@ import com.vishnu.robotoperator.model.WallAnnotation
 
 @Database(
     entities = [WallAnnotation::class],
-    version = 2,
+    version = 3,
 )
 abstract class RobotOperatorDatabase : RoomDatabase() {
     abstract fun annotationDao(): AnnotationDao

@@ -1,6 +1,5 @@
 package com.vishnu.robotoperator.model
 
-import android.graphics.Color
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -10,9 +9,7 @@ data class WallAnnotation(
     var startY: Float,
     var endX: Float,
     var endY: Float,
+    var type: AnnotationType = AnnotationType.SPRAY_AREA,
 
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-
-    var type: AnnotationType = AnnotationType.OBSTACLE,
-    var color: Int = Color.RED,
 )
